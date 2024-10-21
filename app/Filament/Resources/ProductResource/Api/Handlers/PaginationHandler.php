@@ -1,16 +1,16 @@
 <?php
-namespace App\Filament\Resources\UserResource\Api\Handlers;
+namespace App\Filament\Resources\ProductResource\Api\Handlers;
 
 use Illuminate\Http\Request;
 use Rupadana\ApiService\Http\Handlers;
 use Spatie\QueryBuilder\QueryBuilder;
-use App\Filament\Resources\UserResource;
+use App\Filament\Resources\ProductResource;
 
 class PaginationHandler extends Handlers {
     public static string | null $uri = '/';
-    public static string | null $resource = UserResource::class;
-    
+    public static string | null $resource = ProductResource::class;
 
+    public static bool $public = true;
     public function handler()
     {
         $query = static::getEloquentQuery();

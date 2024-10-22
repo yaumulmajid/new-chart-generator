@@ -31,8 +31,13 @@ class ProductResource extends Resource
             ->schema([
                 TextInput::make('product_name')->required(),
                 FileUpload::make('product_image')->required(),
-                Toggle::make('is_Active')
-                ->default(true),
+                Toggle::make('is_active')
+                ->default(true)
+                ->dehydrateStateUsing(fn ($state) => (bool) $state)
+                ->afterStateHydrated(function (Toggle $component, $state) {
+                    $component->state((bool) $state);
+                })
+                ->live(),
             ]);
     }
 
@@ -41,9 +46,14 @@ class ProductResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('product_name')
-                ->searchable(),
+                ->searchable()
+                ->sortable(),
                 ImageColumn::make('product_image'),
                 ToggleColumn::make('is_active')
+                ->afterStateUpdated(function ($record, $state) {
+                    $record->update(['is_active' => $state]);
+                })
+                ->sortable()
             ])
             ->filters([
                 //

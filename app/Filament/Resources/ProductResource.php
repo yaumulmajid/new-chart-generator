@@ -30,7 +30,12 @@ class ProductResource extends Resource
         return $form
             ->schema([
                 TextInput::make('product_name')->required(),
-                FileUpload::make('product_image')->required(),
+                FileUpload::make('product_image')
+                ->required()
+                ->required()
+                ->disk('public')
+                ->directory('images')
+                ->preserveFilenames(),
                 Toggle::make('is_active')
                 ->default(true)
                 ->dehydrateStateUsing(fn ($state) => (bool) $state)
@@ -48,7 +53,8 @@ class ProductResource extends Resource
                 TextColumn::make('product_name')
                 ->searchable()
                 ->sortable(),
-                ImageColumn::make('product_image'),
+                ImageColumn::make('product_image')
+                ->url(fn ($record) => url('storage/images/' . $record->product_image)),
                 ToggleColumn::make('is_active')
                 ->afterStateUpdated(function ($record, $state) {
                     $record->update(['is_active' => $state]);

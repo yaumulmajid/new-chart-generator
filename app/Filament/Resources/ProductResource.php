@@ -32,9 +32,6 @@ class ProductResource extends Resource
                 TextInput::make('product_name')->required(),
                 FileUpload::make('product_image')
                 ->required()
-                ->required()
-                ->disk('public')
-                ->directory('images')
                 ->preserveFilenames(),
                 Toggle::make('is_active')
                 ->default(true)
@@ -84,7 +81,7 @@ class ProductResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListProducts::route('/'),
+            'index' => Pages\ListProducts::route('/products'),
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];

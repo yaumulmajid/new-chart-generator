@@ -112,40 +112,33 @@
         function displayProducts(products) {
             productList.innerHTML = '';
             
-            // Sort products alphabetically
-            const sortedProducts = [...products].sort((a, b) => {
-                const nameA = (a.product_name || a.name || a.title || '').toLowerCase();
-                const nameB = (b.product_name || b.name || b.title || '').toLowerCase();
-                return nameA.localeCompare(nameB);
-            });
-
             // Create columns container
             const columnsContainer = document.createElement('div');
             columnsContainer.className = 'grid grid-cols-2 lg:grid-cols-3 gap-x-8';
 
             // Calculate items per column
-            const totalItems = sortedProducts.length;
+            const totalItems = products.length;
             const numColumns = window.innerWidth >= 1024 ? 3 : 2; // 3 columns for desktop, 2 for mobile/tablet
             const itemsPerColumn = Math.ceil(totalItems / numColumns);
 
-            // Create columns and distribute items vertically
-            for (let col = 0; col < numColumns; col++) {
+            // Create columns array
+            const columns = Array(numColumns).fill().map(() => {
                 const column = document.createElement('div');
                 column.className = 'flex flex-col gap-y-2';
+                return column;
+            });
 
-                // Fill this column with its items
-                for (let i = 0; i < itemsPerColumn; i++) {
-                    const itemIndex = i * numColumns + col; // This creates vertical distribution
-                    if (itemIndex < totalItems) {
-                        const product = sortedProducts[itemIndex];
-                        const productElement = createProductElement(product);
-                        column.appendChild(productElement);
-                    }
+            // Distribute items vertically first, then move to next column
+            products.forEach((product, index) => {
+                const columnIndex = Math.floor(index / itemsPerColumn);
+                if (columnIndex < numColumns) {
+                    const productElement = createProductElement(product);
+                    columns[columnIndex].appendChild(productElement);
                 }
+            });
 
-                columnsContainer.appendChild(column);
-            }
-
+            // Append all columns to container
+            columns.forEach(column => columnsContainer.appendChild(column));
             productList.appendChild(columnsContainer);
         }
 

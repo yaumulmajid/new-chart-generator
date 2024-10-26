@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\IOFactory;
 use Illuminate\Support\Str;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class ChartGeneratorController extends Controller
 {
@@ -115,7 +116,7 @@ class ChartGeneratorController extends Controller
     }
     public function getAllProducts()
     {
-        $products = Product::all();
+        $products = Product::orderBy(DB::raw('LOWER(product_name)'), 'asc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $products

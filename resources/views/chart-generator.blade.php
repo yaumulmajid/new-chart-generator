@@ -108,7 +108,6 @@
             const endIndex = startIndex + ITEMS_PER_PAGE;
             return products.slice(startIndex, endIndex);
         }
-
         function displayProducts(products) {
             productList.innerHTML = '';
             
@@ -116,11 +115,9 @@
             const columnsContainer = document.createElement('div');
             columnsContainer.className = 'grid grid-cols-2 lg:grid-cols-3 gap-x-8';
 
-            // Calculate items per column
-            const totalItems = products.length;
+            // Calculate number of columns based on screen size
             const numColumns = window.innerWidth >= 1024 ? 3 : 2; // 3 columns for desktop, 2 for mobile/tablet
-            const itemsPerColumn = Math.ceil(totalItems / numColumns);
-
+            
             // Create columns array
             const columns = Array(numColumns).fill().map(() => {
                 const column = document.createElement('div');
@@ -128,13 +125,11 @@
                 return column;
             });
 
-            // Distribute items vertically first, then move to next column
+            // Distribute items horizontally (left to right)
             products.forEach((product, index) => {
-                const columnIndex = Math.floor(index / itemsPerColumn);
-                if (columnIndex < numColumns) {
-                    const productElement = createProductElement(product);
-                    columns[columnIndex].appendChild(productElement);
-                }
+                const columnIndex = index % numColumns;
+                const productElement = createProductElement(product);
+                columns[columnIndex].appendChild(productElement);
             });
 
             // Append all columns to container

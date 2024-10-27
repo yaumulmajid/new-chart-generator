@@ -108,6 +108,7 @@
             const endIndex = startIndex + ITEMS_PER_PAGE;
             return products.slice(startIndex, endIndex);
         }
+
         function displayProducts(products) {
             productList.innerHTML = '';
             
@@ -138,58 +139,68 @@
         }
 
         function createProductElement(product) {
-            const div = document.createElement('div');
-            const productName = product.product_name || product.name || product.title || 'Unknown Product';
-            const productId = product.id || product.product_id;
+    const div = document.createElement('div');
+    const productName = product.product_name || product.name || product.title || 'Unknown Product';
+    const productId = product.id || product.product_id;
 
-            div.className = 'flex items-start';
-            div.innerHTML = `
-                <div class="w-5 flex-shrink-0 pt-0.5">
-                    <input type="checkbox" 
-                        id="product-${productId}" 
-                        name="products[]" 
-                        value="${productId}"
-                        data-name="${productName}"
-                        ${selectedProducts.has(productId.toString()) ? 'checked' : ''}
-                        class="form-checkbox h-4 w-4 text-blue-500 border-gray-300 rounded 
-                            cursor-pointer transition-colors duration-200 
-                            focus:ring-2 focus:ring-blue-200
-                            hover:border-blue-500">
-                </div>
-                <label for="product-${productId}" 
-                    class="text-sm cursor-pointer ml-3 flex-1 text-gray-700 hover:text-gray-900 transition-colors duration-200 leading-5">${productName}</label>
-            `;
+    div.className = 'flex items-start';
+    div.innerHTML = `
+        <div class="w-5 flex-shrink-0 pt-0.5">
+            <input type="checkbox" 
+                id="product-${productId}" 
+                name="products[]" 
+                value="${productId}"
+                data-name="${productName}"
+                ${selectedProducts.has(productId.toString()) ? 'checked' : ''}
+                class="form-checkbox h-4 w-4 text-blue-500 border-gray-300 rounded 
+                    cursor-pointer transition-colors duration-200 
+                    focus:ring-2 focus:ring-blue-200
+                    hover:border-blue-500">
+        </div>
+        <label for="product-${productId}" 
+            class="text-sm cursor-pointer ml-3 flex-1 text-gray-700 hover:text-gray-900 transition-colors duration-200 leading-5">${productName}</label>
+    `;
 
-            const checkbox = div.querySelector(`#product-${productId}`);
-            
-            if (selectedProducts.has(productId.toString())) {
-                const existingIndex = selectedProductsOrder.findIndex(p => p.id === productId);
-                if (existingIndex === -1) {
-                    selectedProductsOrder.push({
-                        id: productId,
-                        name: productName,
-                        product_image: product.product_image
-                    });
-                }
-            }
-
-            checkbox.addEventListener('change', (e) => {
-                const productId = e.target.value;
-                if (e.target.checked) {
-                    selectedProducts.add(productId);
-                    selectedProductsOrder.push({
-                        id: productId,
-                        name: e.target.getAttribute('data-name'),
-                        product_image: product.product_image
-                    });
-                } else {
-                    selectedProducts.delete(productId);
-                    selectedProductsOrder = selectedProductsOrder.filter(p => p.id !== productId);
-                }
+    const checkbox = div.querySelector(`#product-${productId}`);
+    
+    // Initialize existing product if checked
+    if (selectedProducts.has(productId.toString())) {
+        const existingIndex = selectedProductsOrder.findIndex(p => p.id === productId);
+        if (existingIndex === -1) {
+            selectedProductsOrder.push({
+                id: productId,
+                name: productName,
+                product_image: product.product_image
             });
-
-            return div;
+            // Sort the array whenever we add a new item
+            selectedProductsOrder.sort((a, b) => a.name.localeCompare(b.name));
         }
+    }
+
+    checkbox.addEventListener('change', (e) => {
+        const productId = e.target.value;
+        const productName = e.target.getAttribute('data-name');
+        
+        if (e.target.checked) {
+            selectedProducts.add(productId);
+            selectedProductsOrder.push({
+                id: productId,
+                name: productName,
+                product_image: product.product_image
+            });
+            // Sort whenever we add a new product
+            selectedProductsOrder.sort((a, b) => a.name.localeCompare(b.name));
+        } else {
+            selectedProducts.delete(productId);
+            selectedProductsOrder = selectedProductsOrder.filter(p => p.id !== productId);
+        }
+        
+        // Optional: Log untuk memastikan urutan
+        console.log('Current order:', selectedProductsOrder.map(p => p.name));
+    });
+
+    return div;
+}
 
         function renderPaginationControls() {
             const paginationContainer = document.createElement('div');

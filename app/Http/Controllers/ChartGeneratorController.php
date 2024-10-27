@@ -49,56 +49,60 @@ class ChartGeneratorController extends Controller
             'products.*.name' => 'required|string',
             'products.*.product_image' => 'nullable|string'
         ]);
-
+    
         try {
             Log::info('Starting chart generation', [
                 'site_name' => $request->site_name,
                 'products' => $request->products
             ]);
-
-            // Fetch products from database
-            $products = Product::whereIn('id', collect($request->products)->pluck('id'))
-                             ->get()
-                             ->map(function($product) {
-                                 return [
-                                     'id' => $product->id,
-                                     'name' => $product->name ?? $product->product_name,
-                                     'product_image' => $product->product_image,
-                                     'hazard_level' => $product->hazard_level ?? 'N/A',
-                                     'ppe_required' => $product->ppe_required ?? 'N/A'
-                                 ];
-                             })
-                             ->toArray();
-
+    
+            // Ambil data dari database
+            $productsFromDb = Product::whereIn('id', collect($request->products)->pluck('id'))->get();
+            
+            // Susun ulang sesuai urutan request
+            $products = collect($request->products)->map(function($requestProduct) use ($productsFromDb) {
+                $product = $productsFromDb->firstWhere('id', $requestProduct['id']);
+                if ($product) {
+                    return [
+                        'id' => $product->id,
+                        'name' => $product->name ?? $product->product_name,
+                        'product_image' => $product->product_image,
+                        'hazard_level' => $product->hazard_level ?? 'N/A',
+                        'ppe_required' => $product->ppe_required ?? 'N/A'
+                    ];
+                }
+                return null;
+            })->filter()->values()->toArray();
+    
             if (empty($products)) {
                 throw new \Exception('No valid products found');
             }
-
+    
             // Generate Word document
             $wordChart = new WordChart($request->site_name, $products);
             $phpWord = $wordChart->generate();
-
+    
             $fileName = Str::slug($request->site_name) . '_wall_chart.docx';
             $tempFile = tempnam(sys_get_temp_dir(), 'word_') . '.docx';
-
+    
             // Save document
             $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
             $objWriter->save($tempFile);
-
+    
             if (!file_exists($tempFile) || filesize($tempFile) === 0) {
                 throw new \Exception('Generated file is invalid');
             }
-
+    
             Log::info('Chart generated successfully', [
                 'file_size' => filesize($tempFile),
                 'file_name' => $fileName
             ]);
-
+    
             return response()->download($tempFile, $fileName, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
             ])->deleteFileAfterSend(true);
-
+    
         } catch (\Exception $e) {
             Log::error('Chart generation failed', [
                 'error' => $e->getMessage(),
